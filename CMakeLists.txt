@@ -51,5 +51,5 @@ if(USE_BLAS)
 else()
 endif()
 
-add_executable(main.out src/main.cpp src/geometry/domain.cpp src/solver.cpp)
+add_executable(main.out src/main.cpp src/geometry/domain.cpp src/geometry/cylinder.cpp src/solver.cpp)
 target_link_libraries(main.out xtensor)

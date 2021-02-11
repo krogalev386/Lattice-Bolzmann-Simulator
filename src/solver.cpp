@@ -188,8 +188,12 @@ void solver::_streaming_step(){
 
 
 void solver::solve() {
+    dom->mark_border_nodes();
+    dom->init_phys_field();
     init_f_distr();
     for (uint ts = 0; ts < timesteps; ++ts){
+        if (ts%100 == 0)
+            std::cout << "Timestep " << ts << std::endl;
         _streaming_step();
         _collision_step();
     }

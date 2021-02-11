@@ -1,7 +1,7 @@
 #pragma once 
 #include <memory>
 //#include "mesh.h"
-//#include "figure.h"
+#include "cylinder.h"
 
 #include <xtensor/xarray.hpp>
 #include <xtensor/xio.hpp>
@@ -10,6 +10,9 @@
 struct mesh {
     int nx, ny;
 
+    xt::xarray<double> x_axis_grid;
+    xt::xarray<double> y_axis_grid;
+    
     xt::xarray<double> f_distr;
     xt::xarray<double> f_distr_next;
     xt::xarray<double> rho_mesh;
@@ -31,11 +34,13 @@ class domain: public std::enable_shared_from_this<domain> {
     std::shared_ptr<mesh> p_mesh;
 
 public:
-    domain(double Re, double ext_f, double x, double y);
+    domain(double Re, double ext_f, double x, double y, int nx, int ny);
     ~domain();
 
     mesh& get_mesh() { return *p_mesh; };
     double get_force() { return ext_force; };
 
-    //void insert_figure(std::shared_ptr<figure> fig);
+    void insert_figure(std::shared_ptr<figure> fig);
+    void init_phys_field();
+    void mark_border_nodes();
 };
