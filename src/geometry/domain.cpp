@@ -27,6 +27,9 @@ domain::domain(double Re, double ext_f, double x, double y, int nx, int ny): Re(
         p_mesh->border_node_indecies.push_back({i,ny-1});
     }*/
 
+    mark_border_nodes();
+    init_phys_field();
+
     /*p_mesh->add_vel = xt::zeros<double>({nx,ny,2});
     xt::view(p_mesh->add_vel, xt::all(), xt::all(), 0).fill(ext_f);
 
@@ -108,5 +111,7 @@ void domain::init_phys_field(){
 }
 
 void domain::insert_figure(std::shared_ptr<figure> fig){
-    fig->instert_into_domain(shared_from_this());
+    fig->insert_into_domain(shared_from_this());
+    mark_border_nodes();
+    init_phys_field();
 };

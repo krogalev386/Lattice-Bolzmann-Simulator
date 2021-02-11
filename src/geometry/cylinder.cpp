@@ -13,4 +13,5 @@ void cylinder::insert_into_domain(std::shared_ptr<domain> p_domain){
             if ((x_lin(i) - x)*(x_lin(i) - x) 
                 + (y_lin(j) - y)*(y_lin(j) - y) < radius*radius)
                 geo_mesh.is_solid(i,j) = true;
-}
+
+};
