@@ -4,6 +4,8 @@ project(LBM)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0079 NEW)
 
+set(SOURCE src/main.cpp src/geometry/domain.cpp src/geometry/cylinder.cpp src/geometry/rectangle.cpp src/solver.cpp)
+
 option(USE_BLAS "use openblas" OFF)
 option(USE_SIMD "use xsimd" ON)
 
@@ -51,5 +53,5 @@ if(USE_BLAS)
 else()
 endif()
 
-add_executable(main.out src/main.cpp src/geometry/domain.cpp src/geometry/cylinder.cpp src/solver.cpp)
+add_executable(main.out ${SOURCE})
 target_link_libraries(main.out xtensor)
