@@ -20,27 +20,9 @@ domain::domain(double Re, double ext_f, double x, double y, int nx, int ny): Re(
     // make horizontal pipe
     xt::view(p_mesh->is_solid, xt::all(), 0).fill(true);
     xt::view(p_mesh->is_solid, xt::all(), ny-1).fill(true);
-    
-    
-    /*for (int i = 0; i < nx; i++){
-        p_mesh->border_node_indecies.push_back({i,0});
-        p_mesh->border_node_indecies.push_back({i,ny-1});
-    }*/
 
     mark_border_nodes();
     init_phys_field();
-
-    /*p_mesh->add_vel = xt::zeros<double>({nx,ny,2});
-    xt::view(p_mesh->add_vel, xt::all(), xt::all(), 0).fill(ext_f);
-
-    //eliminate add_vel and rho in solid nodes
-    for (int i = 0; i < nx; ++i)
-        for (int j = 0; j < ny; ++j)
-            if (p_mesh->is_solid(i,j)){
-                p_mesh->add_vel(i,j,0) = 0;
-                p_mesh->add_vel(i,j,1) = 0;
-                p_mesh->rho_mesh(i,j) = 0;
-            }*/
 
     for (int j = 1; j < ny-1; ++j){
         p_mesh->in_out_node_indecies.push_back({0,j,4}); // west nodes

@@ -4,7 +4,12 @@ project(LBM)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0079 NEW)
 
-set(SOURCE src/main.cpp src/geometry/domain.cpp src/geometry/cylinder.cpp src/geometry/rectangle.cpp src/solver.cpp)
+set(SOURCE src/main.cpp
+src/geometry/domain.cpp 
+src/geometry/cylinder.cpp 
+src/geometry/rectangle.cpp 
+src/solver.cpp
+src/domain_builder.cpp)
 
 option(USE_BLAS "use openblas" OFF)
 option(USE_SIMD "use xsimd" ON)

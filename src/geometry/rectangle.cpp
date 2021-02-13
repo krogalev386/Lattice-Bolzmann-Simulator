@@ -1,7 +1,7 @@
 #include "../../include/geometry/domain.h"
 #include "../../include/geometry/rectangle.h"
 
-void rectangle::insert_into_domain(std::shared_ptr<domain> p_domain){
+void rectangle::insert_into_domain(std::shared_ptr<domain> p_domain) {
 
     mesh& geo_mesh = p_domain->get_mesh();
     auto& x_lin = geo_mesh.x_axis_grid;

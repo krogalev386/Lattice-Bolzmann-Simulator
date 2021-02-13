@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import subprocess
 
-subprocess.call(["./main.out"])
+subprocess.call(["./main.out", "config.txt"])
 
 rho_mesh = np.load("rho_m.npy")
 vel_mesh = np.load("vel_m.npy")
