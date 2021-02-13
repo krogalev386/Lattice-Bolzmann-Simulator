@@ -8,7 +8,8 @@
 #include <fstream>
 #include <vector>
 
-class domain_builder {
+class config_reader {
 public:
     std::shared_ptr<domain> build_domain(std::string config_file_name);
+    int get_timesteps(std::string config_file_name);
 };

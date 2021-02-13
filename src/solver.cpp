@@ -153,20 +153,20 @@ void solver::_vel_eval(){
     auto& f_distr = dom->get_mesh().f_distr;
 
     xt::view(vel_mesh, xt::all(), xt::all(), 0)
-        = (xt::view(f_distr, xt::all(), xt::all(), 4) / sqrt(1)
+        = (xt::view(f_distr, xt::all(), xt::all(), 4)
         + xt::view(f_distr, xt::all(), xt::all(), 0)
-        + xt::view(f_distr, xt::all(), xt::all(), 7) / sqrt(1)
-        - xt::view(f_distr, xt::all(), xt::all(), 5) / sqrt(1)
+        + xt::view(f_distr, xt::all(), xt::all(), 7)
+        - xt::view(f_distr, xt::all(), xt::all(), 5)
         - xt::view(f_distr, xt::all(), xt::all(), 2)
-        - xt::view(f_distr, xt::all(), xt::all(), 6) / sqrt(1));///dom->get_mesh().rho_mesh;
+        - xt::view(f_distr, xt::all(), xt::all(), 6));
 
     xt::view(vel_mesh, xt::all(), xt::all(), 1)
-        = (xt::view(f_distr, xt::all(), xt::all(), 5) / sqrt(1)
+        = (xt::view(f_distr, xt::all(), xt::all(), 5)
         + xt::view(f_distr, xt::all(), xt::all(), 1)
-        + xt::view(f_distr, xt::all(), xt::all(), 4) / sqrt(1)
-        - xt::view(f_distr, xt::all(), xt::all(), 7) / sqrt(1)
+        + xt::view(f_distr, xt::all(), xt::all(), 4)
+        - xt::view(f_distr, xt::all(), xt::all(), 7)
         - xt::view(f_distr, xt::all(), xt::all(), 3)
-        - xt::view(f_distr, xt::all(), xt::all(), 6) / sqrt(1));///dom->get_mesh().rho_mesh;
+        - xt::view(f_distr, xt::all(), xt::all(), 6));
 };
 
 void solver::_collision_step(){

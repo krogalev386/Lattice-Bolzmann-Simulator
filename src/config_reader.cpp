@@ -1,6 +1,6 @@
-#include "../include/domain_builder.h"
+#include "../include/config_reader.h"
 
-std::shared_ptr<domain> domain_builder::build_domain(std::string config_file_name){
+std::shared_ptr<domain> config_reader::build_domain(std::string config_file_name){
     
     int x, y, nx, ny, timesteps;
     double add_vel;
@@ -43,4 +43,22 @@ std::shared_ptr<domain> domain_builder::build_domain(std::string config_file_nam
     }
 
     return dom;
+};
+
+int config_reader::get_timesteps(std::string config_file_name){
+    int timesteps;
+
+    std::fstream config_file;
+    std::string curr_str, tmp;
+    std::stringstream ss;
+
+    config_file.open(config_file_name, std::ios::in);
+    while(std::getline(config_file, curr_str)){
+        ss = std::stringstream(curr_str);
+        ss >> tmp;
+        if (tmp == "TIMESTEPS:"){
+            ss >> tmp; timesteps = std::stoi(tmp);
+        }
+    }
+    return timesteps;
 }
