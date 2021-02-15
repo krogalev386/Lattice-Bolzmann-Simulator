@@ -14,6 +14,8 @@ src/config_reader.cpp)
 option(USE_BLAS "use openblas" OFF)
 option(USE_SIMD "use xsimd" ON)
 
+list(APPEND FLAGS "-O2")
+
 include(FetchContent)
 include(CheckCXXCompilerFlag)
 
@@ -58,5 +60,15 @@ if(USE_BLAS)
 else()
 endif()
 
+if (NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/v0.15/conan.cmake" "${CMAKE_BINARY_DIR}/conan.cmake")
+endif ()
+
+include(${CMAKE_BINARY_DIR}/conan.cmake)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
 add_executable(main.out ${SOURCE})
-target_link_libraries(main.out xtensor)
+target_link_libraries(main.out xtensor ${CONAN_LIBS})
+target_compile_options(main.out PRIVATE ${FLAGS})
