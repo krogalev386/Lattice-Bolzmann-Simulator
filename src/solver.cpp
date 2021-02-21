@@ -186,14 +186,20 @@ void solver::_streaming_step(){
     _vel_eval();
 };
 
+void solver::attatch_transmitter(std::shared_ptr<data_transmitter> transmitter){
+    this->transmitter = transmitter;
+    (this->transmitter)->attatch_domain(dom);
+};
 
 void solver::solve() {
     dom->mark_border_nodes();
     dom->init_phys_field();
     init_f_distr();
     for (uint ts = 0; ts < timesteps; ++ts){
-        if (ts%100 == 0)
+        if (ts%100 == 0){
             std::cout << "Timestep " << ts << std::endl;
+            transmitter->send_data();
+        }
         _streaming_step();
         _collision_step();
     }

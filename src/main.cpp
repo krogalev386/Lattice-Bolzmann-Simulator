@@ -11,8 +11,15 @@ int main(int argc, char** argv) {
     std::string conf_file = argv[1];
     std::shared_ptr<domain> dom = conf_read.build_domain(conf_file);
     //dom->insert_figure(cylind);
+
+    std::shared_ptr<data_transmitter> transmitter = std::make_shared<data_transmitter>(1337);
+    transmitter->accept_connection();
+
     solver solver_obj = solver(dom, conf_read.get_timesteps(conf_file));
+    solver_obj.attatch_transmitter(transmitter);
+
     solver_obj.solve();
+
     xt::xarray<double> vel_m = solver_obj.get_velocities();
     xt::xarray<double> rho_m = solver_obj.get_density_map();
     xt::xarray<double> f_distr = solver_obj.get_f_distr();

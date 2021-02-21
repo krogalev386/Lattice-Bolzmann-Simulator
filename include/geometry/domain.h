@@ -38,6 +38,8 @@ public:
     ~domain();
 
     mesh& get_mesh() { return *p_mesh; };
+    int& get_nx() { return p_mesh->nx; };
+    int& get_ny() { return p_mesh->ny; };
     double get_force() { return ext_force; };
 
     void insert_figure(std::shared_ptr<figure> fig);

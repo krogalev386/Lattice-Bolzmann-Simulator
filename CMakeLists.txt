@@ -9,7 +9,8 @@ src/geometry/domain.cpp
 src/geometry/cylinder.cpp 
 src/geometry/rectangle.cpp 
 src/solver.cpp
-src/config_reader.cpp)
+src/config_reader.cpp
+src/data_transmitter.cpp)
 
 option(USE_BLAS "use openblas" OFF)
 option(USE_SIMD "use xsimd" ON)
