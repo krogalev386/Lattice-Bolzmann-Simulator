@@ -28,6 +28,7 @@ int anti_k(int k){
     if (k==7) return 5;
     if (k==8) return 6;
     if (k==9) return 9;
+    else throw std::runtime_error("unknown k!");
 };
 
 // Class methods

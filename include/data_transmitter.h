@@ -11,7 +11,7 @@ class data_transmitter {
     tcp::acceptor acceptor;
     tcp::socket socket;
     std::shared_ptr<domain> dom;
-    std::vector<int> shape;
+    std::vector<uint32_t> shape;
 
 public:
 

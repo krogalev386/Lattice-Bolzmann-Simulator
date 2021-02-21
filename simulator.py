@@ -1,6 +1,6 @@
-import matplotlib
-matplotlib.use("TkAgg")
-import matplotlib.pyplot as plt
+# import matplotlib
+# matplotlib.use("TkAgg")
+# import matplotlib.pyplot as plt
 import numpy as np
 import socket
 import time
@@ -10,28 +10,35 @@ TCP_IP = '127.0.0.1'
 TCP_PORT = 1337
 INIT_BUFFER_SIZE = 8
 
-p = subprocess.Popen(["build/bin/main.out", "config.txt"])
+# p = subprocess.Popen(["build/bin/main.out", "config.txt"])
 
 time.sleep(1)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((TCP_IP, TCP_PORT))
 
-while (p.returncode == None):
+loop = True
+while (loop):
 
     SHAPE = s.recv(INIT_BUFFER_SIZE)
-    #SHAPE = np.frombuffer(SHAPE, dtype=np.dtype(int))
+    print("SHAPE size: ", len(SHAPE))
+    SHAPE = np.frombuffer(SHAPE, dtype=np.int32)
 
     print("SHAPE: ", SHAPE)
     #print("Density mesh shize: ", SHAPE[0], " X ", SHAPE[1])
 
-    SHAPE = [1,1]
-    rho_mesh = s.recv(8*SHAPE[0]*SHAPE[1])
-    #rho_mesh = np.frombuffer(rho_mesh, dtype=np.dtype(float))
-    vel_mesh = s.recv(16*SHAPE[0]*SHAPE[1])
-    #vel_mesh = np.frombuffer(vel_mesh, dtype=np.dtype(float))
-    obstacle_map = s.recv(8*SHAPE[0]*SHAPE[1])
-    #obstacle_map = np.frombuffer(obstacle_map, dtype=np.dtype(bool))
+    rho_len = np.frombuffer(s.recv(8), dtype=np.uint64)
+    rho_mesh = s.recv(rho_len[0])
+    rho_mesh = np.frombuffer(rho_mesh, dtype=np.double)
+    rho_mesh.reshape(SHAPE)
+
+    vel_len = np.frombuffer(s.recv(8), dtype=np.uint64)
+    vel_mesh = s.recv(vel_len[0])
+    vel_mesh = np.frombuffer(vel_mesh, dtype=np.double)
+
+    obstacle_len = np.frombuffer(s.recv(8), dtype=np.uint64)
+    obstacle_map = s.recv(obstacle_len[0])
+    obstacle_map = np.frombuffer(obstacle_map, dtype=np.bool)
 
     print("OBSTACLES: ", obstacle_map)
 
