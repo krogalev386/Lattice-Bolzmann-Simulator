@@ -199,7 +199,8 @@ void solver::solve() {
     for (uint ts = 0; ts < timesteps; ++ts){
         if (ts%100 == 0){
             std::cout << "Timestep " << ts << std::endl;
-            transmitter->send_data();
+            if (transmitter)
+                transmitter->send_data();
         }
         _streaming_step();
         _collision_step();

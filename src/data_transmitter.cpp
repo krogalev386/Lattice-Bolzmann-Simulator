@@ -4,16 +4,32 @@
 namespace net = boost::asio;
 
 template<class Vec>
-static auto to_buf(const Vec &data){
-    return net::buffer(data.data(), sizeof(typename Vec::value_type)*data.size());
+static auto to_buf(const Vec &data, uint64_t buff_size, int offset){
+    return net::buffer((data.data()+offset), buff_size);
 }
 
 template<class Sock, class Vec>
 static auto send(Sock &socket, const Vec &data){
-    auto len = (uint64_t)sizeof(typename Vec::value_type)*data.size();
-    std::vector<uint64_t> len_vec{ std::move(len) };
-    net::write(socket, to_buf(len_vec), net::transfer_all());
-    net::write(socket, to_buf(data), net::transfer_all());
+    uint64_t size_of_type = (uint64_t)sizeof(typename Vec::value_type); 
+    auto len = size_of_type*data.size();
+    std::vector<uint64_t> len_vec;
+
+    uint64_t buff_size = 64*1024; // set buffer size
+    uint64_t n_of_cycles = len / buff_size; // number of transfer iterations
+    uint64_t n_of_rest_bytes = len % buff_size; // number of rest bytes to transfer after main cycle
+
+    int step_offset = buff_size / size_of_type; // offset in data structure per cycle
+    int data_rest = n_of_rest_bytes / size_of_type; // number of rest elements to transfer after cycle
+
+    len_vec.push_back(std::move(buff_size));
+    len_vec.push_back(std::move(n_of_cycles));
+    len_vec.push_back(std::move(n_of_rest_bytes));
+
+    net::write(socket, to_buf(len_vec, (uint64_t)sizeof(len_vec), 0), net::transfer_all());
+    for (int i = 0; i < n_of_cycles; ++i){
+        net::write(socket, to_buf(data, buff_size, i*step_offset), net::transfer_all());
+    }
+    net::write(socket, to_buf(data, n_of_rest_bytes, n_of_cycles*step_offset), net::transfer_all());
 }
 
 void data_transmitter::attatch_domain(std::shared_ptr<domain> dom){
@@ -37,16 +53,9 @@ void data_transmitter::send_data(){
     xt::xarray<bool>& solid_map = dom->get_mesh().is_solid;
 
     // Send info about arrays
-    net::write(socket, to_buf(shape), net::transfer_all());
-    std::cout << "Size info transmitted" << std::endl;
-    std::cout << "shape:" << xt::adapt(shape) << std::endl;
-
+    send(socket, shape);
     // Send arrays
     send(socket, rho_mesh);
-    std::cout << "rho shape:" << xt::adapt(rho_mesh.shape()) << std::endl;
     send(socket, vel_mesh);
-    std::cout << "vel shape:" << xt::adapt(vel_mesh.shape()) << std::endl;
     send(socket, solid_map);
-    std::cout << "solid shape:" << xt::adapt(solid_map.shape()) << std::endl;
-    std::cout << "Mesh content transmitted" << std::endl;
 };

@@ -42,3 +42,6 @@ build/
 
 # npy arrays
 *.npy
+
+# other trach
+.vscode/
