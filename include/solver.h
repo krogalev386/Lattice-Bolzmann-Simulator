@@ -24,6 +24,10 @@ class solver {
 
     void init_f_distr();
     void f_eq_prepare();
+
+    void _apply_left_vel_border_condition(double vel);
+    void _apply_right_vel_border_condition(double vel);
+    void _apply_vel_border_condition(double vel);
     
     int next_i(int i, int k);
     int next_j(int j, int k);

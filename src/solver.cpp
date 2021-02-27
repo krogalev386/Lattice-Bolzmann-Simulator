@@ -58,6 +58,9 @@ int solver::next_j(int j, int k){
 void solver::init_f_distr(){
     //std::cout << "Pre-init f_distr" << std::endl;
     //std::cout << dom->get_mesh().f_distr << std::endl;
+    int nx = dom->get_mesh().nx;
+    int ny = dom->get_mesh().ny;
+
     auto& rho_m = dom->get_mesh().rho_mesh;
     for (uint k = 1; k < 10; ++k){
         std::tuple<double,double,double> params = f_eq_params(k,c);
@@ -67,6 +70,7 @@ void solver::init_f_distr(){
         xt::view(f_eq, xt::all(), xt::all(), k-1) = w*rho_m;
     }
     dom->get_mesh().f_distr = f_eq;
+    //dom->get_mesh().f_distr_next = f_eq;
     //std::cout << "Post-init f_distr" << std::endl;
     //std::cout << dom->get_mesh().f_distr << std::endl;
 };
@@ -126,15 +130,106 @@ void solver::_transport_to_neighbours(){
         xt::view(f_distr_next, xt::range(next_i(1,k), next_i((nx-2),k)+1),
                                 xt::range(next_j(1,k), next_j((ny-2),k)+1),
                                 k-1) = xt::view(f_distr, xt::range(1, nx-1), xt::range(1,ny-1), k-1);
+
         // inlet-outlet nodes
-        xt::view(f_distr_next, next_i(0,k),
+        /*xt::view(f_distr_next, next_i(0,k),
                                 xt::range(next_j(1,k), next_j((ny-2),k)+1),
                                 k-1) = xt::view(f_distr, 0, xt::range(1,ny-1), k-1);
         xt::view(f_distr_next, next_i(nx-1,k),
                                 xt::range(next_j(1,k), next_j((ny-2),k)+1),
-                                k-1) = xt::view(f_distr, nx-1, xt::range(1,ny-1), k-1);        
+                                k-1) = xt::view(f_distr, nx-1, xt::range(1,ny-1), k-1);*/
+        // inlet-outlet nodes (second version)
+        if (next_i(0,k)!=-1)
+            xt::view(f_distr_next, next_i(0,k),
+                     xt::range(next_j(1,k), next_j((ny-2),k)+1),
+                     k-1) = xt::view(f_distr, 0, xt::range(1,ny-1), k-1);
+
+        if (next_i(nx-1,k)!=nx)
+            xt::view(f_distr_next, next_i(nx-1,k),
+                     xt::range(next_j(1,k), next_j((ny-2),k)+1),
+                     k-1) = xt::view(f_distr, nx-1, xt::range(1,ny-1), k-1);
+
     }
+    //std::cout << xt::view(f_distr, nx-1, xt::range(1,ny-1), 1) << std::endl;
 };
+
+void solver::_apply_left_vel_border_condition(double vel){
+    auto& f_distr_next = dom->get_mesh().f_distr_next;
+    auto& f_distr = dom->get_mesh().f_distr;
+    auto& rho_mesh = dom->get_mesh().rho_mesh;
+
+    int nx = dom->get_mesh().nx;
+    int ny = dom->get_mesh().ny;
+
+    // rho compute
+    //std::cout << xt::view(f_distr_next, 0, xt::range(1,ny-1), 0) << std::endl;
+    //std::cout << xt::view(rho_mesh, 0, xt::range(1,ny-1)) << std::endl;
+    xt::view(rho_mesh, 0, xt::range(1,ny-1)) = (xt::view(f_distr, 0, xt::range(1,ny-1), 8)
+                                             + xt::view(f_distr, 0, xt::range(1,ny-1), 1)
+                                             + xt::view(f_distr, 0, xt::range(1,ny-1), 3)
+                                             + 2*xt::view(f_distr, 0, xt::range(1,ny-1), 2)
+                                             + 2*xt::view(f_distr, 0, xt::range(1,ny-1), 5)
+                                             + 2*xt::view(f_distr, 0, xt::range(1,ny-1), 6))/(1-vel);
+
+
+    //std::cout << xt::view(rho_mesh, 0, xt::range(1,ny-1)) << std::endl;
+
+    //std::cout << "==============================================" << std::endl;
+    //std::cout << xt::view(f_distr, 0, xt::range(1,ny-1), 7) << std::endl;
+
+    xt::view(f_distr_next, 0, xt::range(1,ny-1), 7) = xt::view(f_distr, 0, xt::range(1,ny-1), 5)
+                                                    + (xt::view(f_distr, 0, xt::range(1,ny-1), 1)
+                                                    - xt::view(f_distr, 0, xt::range(1,ny-1), 3))/2
+                                                    + xt::view(rho_mesh, 0, xt::range(1,ny-1))*vel/6;
+
+    //std::cout << xt::view(f_distr, 0, xt::range(1,ny-1), 7) << std::endl;
+    xt::view(f_distr_next, 0, xt::range(1,ny-1), 4) = xt::view(f_distr, 0, xt::range(1,ny-1), 6)
+                                                    - (xt::view(f_distr, 0, xt::range(1,ny-1), 1)
+                                                    - xt::view(f_distr, 0, xt::range(1,ny-1), 3))/2
+                                                    + xt::view(rho_mesh, 0, xt::range(1,ny-1))*vel/6;
+
+    xt::view(f_distr_next, 0, xt::range(1,ny-1), 0) = xt::view(f_distr, 0, xt::range(1,ny-1), 2)
+                                                    - 2*xt::view(rho_mesh, 0, xt::range(1,ny-1))*vel/3;
+
+
+};
+
+void solver::_apply_right_vel_border_condition(double vel){
+    auto& f_distr_next = dom->get_mesh().f_distr_next;
+    auto& f_distr = dom->get_mesh().f_distr;
+    auto& rho_mesh = dom->get_mesh().rho_mesh;
+
+    int nx = dom->get_mesh().nx;
+    int ny = dom->get_mesh().ny;
+
+    // rho compute
+    xt::view(rho_mesh, nx-1, xt::range(1,ny-1)) = (xt::view(f_distr, nx-1, xt::range(1,ny-1), 8)
+                                             + xt::view(f_distr, nx-1, xt::range(1,ny-1), 1)
+                                             + xt::view(f_distr, nx-1, xt::range(1,ny-1), 3)
+                                             + 2*xt::view(f_distr, nx-1, xt::range(1,ny-1), 0)
+                                             + 2*xt::view(f_distr, nx-1, xt::range(1,ny-1), 4)
+                                             + 2*xt::view(f_distr, nx-1, xt::range(1,ny-1), 2))/(1+vel);
+                                            
+    xt::view(f_distr_next, nx-1, xt::range(1,ny-1), 6) = xt::view(f_distr, nx-1, xt::range(1,ny-1),4)
+                                                    + (xt::view(f_distr, nx-1, xt::range(1,ny-1), 1)
+                                                    - xt::view(f_distr, nx-1, xt::range(1,ny-1), 3))/2
+                                                    - xt::view(rho_mesh, nx-1, xt::range(1,ny-1))*vel/6;
+
+    xt::view(f_distr_next, nx-1, xt::range(1,ny-1), 5) = xt::view(f_distr, nx-1, xt::range(1,ny-1), 7)
+                                                    - (xt::view(f_distr, nx-1, xt::range(1,ny-1), 1)
+                                                    - xt::view(f_distr, nx-1, xt::range(1,ny-1), 3))/2
+                                                    - xt::view(rho_mesh, nx-1, xt::range(1,ny-1))*vel/6;
+
+    xt::view(f_distr_next, nx-1, xt::range(1,ny-1), 2) = xt::view(f_distr, nx-1, xt::range(1,ny-1), 0)
+                                                    + 2*xt::view(rho_mesh, nx-1, xt::range(1,ny-1))*vel/3;
+    
+
+};
+
+void solver::_apply_vel_border_condition(double vel){
+    _apply_left_vel_border_condition(vel);
+    _apply_right_vel_border_condition(vel);
+}
 
 void solver::_apply_next_step_f_distr(){
     auto& f_distr = dom->get_mesh().f_distr;
@@ -178,10 +273,16 @@ void solver::_collision_step(){
 void solver::_streaming_step(){
 
     // streaming
+    std::cout << "=======================" << std::endl;
     _bounce_back();
+    std::cout << xt::view(dom->get_mesh().f_distr, 0, xt::range(1,dom->get_mesh().ny-1)) << std::endl;
     _transport_to_neighbours();
+    std::cout << xt::view(dom->get_mesh().f_distr_next, 0, xt::range(1,dom->get_mesh().ny-1)) << std::endl;
+    _apply_vel_border_condition(0.0000);
     _apply_next_step_f_distr();
     _bounce_back();
+    //_apply_vel_border_condition(0.001);
+    //_apply_vel_border_condition(0.0000);
     // density and velocity evaluation
     _dense_eval();
     _vel_eval();
@@ -199,7 +300,9 @@ void solver::solve() {
     for (uint ts = 0; ts < timesteps; ++ts){
         if (ts%100 == 0){
             std::cout << "Timestep " << ts << std::endl;
-            transmitter->send_data();
+            //std::cout << xt::view(dom->get_mesh().vel_mesh, 10, xt::all(), 0) << std::endl;
+            if (transmitter)
+                transmitter->send_data();
         }
         _streaming_step();
         _collision_step();

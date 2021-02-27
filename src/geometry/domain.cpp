@@ -21,6 +21,10 @@ domain::domain(double Re, double ext_f, double x, double y, int nx, int ny): Re(
     xt::view(p_mesh->is_solid, xt::all(), 0).fill(true);
     xt::view(p_mesh->is_solid, xt::all(), ny-1).fill(true);
 
+    // make vertical bounds
+    //xt::view(p_mesh->is_solid, 0, xt::all()).fill(true);
+    //xt::view(p_mesh->is_solid, nx-1, xt::all()).fill(true);
+
     mark_border_nodes();
     init_phys_field();
 
@@ -73,6 +77,22 @@ void domain::mark_border_nodes(){
     // north-east corner
     if (is_solid(nx-1,ny-1) && !(is_solid(nx-1,ny-2) && is_solid(nx-2,ny-1) && is_solid(nx-2,ny-2)))
         p_mesh->border_node_indecies.push_back({nx-1,ny-1});
+
+
+    // west bound
+    for (int j = 1; j < ny-1; ++j)
+        if (is_solid(0,j))
+            if (!(is_solid(0,j+1) && is_solid(1,j) && is_solid(0,j-1)
+                && is_solid(1,j+1) && is_solid(1,j-1)))
+                p_mesh->border_node_indecies.push_back({0,j});
+
+
+    // east bound
+    for (int j = 1; j < ny-1; ++j)
+        if (is_solid(nx-1,j))
+            if (!(is_solid(nx-1,j+1) && is_solid(nx-2,j) && is_solid(nx-1,j-1)
+                && is_solid(nx-2,j+1) && is_solid(nx-2,j-1)))
+                p_mesh->border_node_indecies.push_back({nx-1,j});
 
 };
 

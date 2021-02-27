@@ -1,61 +1,80 @@
-# import matplotlib
-# matplotlib.use("TkAgg")
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 import numpy as np
 import socket
 import time
 import subprocess
 
+def recive_data(socket):
+    meta_info_buff_size = 8*3
+
+    meta_info = np.frombuffer(socket.recv(meta_info_buff_size), dtype=np.uint64)
+
+    buff_size = meta_info[0]
+    n_of_cycles = meta_info[1]
+    n_of_rest_bytes = meta_info[2]
+
+    accepted_data = bytearray()
+
+    for i in range(n_of_cycles):
+        accepted_data = accepted_data + socket.recv(buff_size)
+
+    accepted_data = accepted_data + socket.recv(n_of_rest_bytes)
+
+    return accepted_data
+
+
 TCP_IP = '127.0.0.1'
 TCP_PORT = 1337
-INIT_BUFFER_SIZE = 8
 
-# p = subprocess.Popen(["build/bin/main.out", "config.txt"])
+p = subprocess.Popen(["build/bin/main.out", "config.txt"])
 
 time.sleep(1)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((TCP_IP, TCP_PORT))
 
-loop = True
-while (loop):
+plt.ion()
 
-    SHAPE = s.recv(INIT_BUFFER_SIZE)
-    print("SHAPE size: ", len(SHAPE))
+fig = plt.figure(figsize=(10,5))
+ax = fig.add_subplot(111)
+#rho_image = ax.imshow([[1,1],[0,0]])
+vel_image = ax.imshow([[1,1],[1,1]])
+bar = plt.colorbar(vel_image)
+obstacle_image = ax.imshow([[1,0],[0,0]], alpha=0.5,
+          interpolation='nearest', cmap='gray', aspect='auto')
+
+while (p.returncode == None):
+    fig.canvas.flush_events()
+    print("============================")
+    SHAPE = recive_data(s)
     SHAPE = np.frombuffer(SHAPE, dtype=np.int32)
 
-    print("SHAPE: ", SHAPE)
-    #print("Density mesh shize: ", SHAPE[0], " X ", SHAPE[1])
-
-    rho_len = np.frombuffer(s.recv(8), dtype=np.uint64)
-    rho_mesh = s.recv(rho_len[0])
+    rho_mesh = recive_data(s)
     rho_mesh = np.frombuffer(rho_mesh, dtype=np.double)
-    rho_mesh.reshape(SHAPE)
+    rho_mesh = rho_mesh.reshape(SHAPE)
 
-    vel_len = np.frombuffer(s.recv(8), dtype=np.uint64)
-    vel_mesh = s.recv(vel_len[0])
+    vel_mesh = recive_data(s)
     vel_mesh = np.frombuffer(vel_mesh, dtype=np.double)
+    vel_mesh = vel_mesh.reshape([SHAPE[0],SHAPE[1],2])
 
-    obstacle_len = np.frombuffer(s.recv(8), dtype=np.uint64)
-    obstacle_map = s.recv(obstacle_len[0])
+    abs_vel_mesh = np.sqrt(vel_mesh[:,:,0]*vel_mesh[:,:,0]
+                          +vel_mesh[:,:,1]*vel_mesh[:,:,1])
+
+    obstacle_map = recive_data(s)
     obstacle_map = np.frombuffer(obstacle_map, dtype=np.bool)
+    obstacle_map = obstacle_map.reshape(SHAPE)
 
-    print("OBSTACLES: ", obstacle_map)
+    #vel_image.set_data(abs_vel_mesh.transpose())
+    vel_image.set_data(vel_mesh[:,:,0].transpose())
+    vel_image.set_norm(Normalize(vmin=vel_mesh[:,:,0].min(),
+                                 vmax=vel_mesh[:,:,0].max()))
+    print("Max rho: ", rho_mesh.mean())
+    obstacle_image.set_data(obstacle_map.transpose())
+    fig.canvas.draw()
 
-    #rho_mesh = np.reshape(rho_mesh, (SHAPE[0],SHAPE[1]))
-    #vel_mesh = np.reshape(vel_mesh, (2,SHAPE[0],SHAPE[1]))
-    #obstacle_map = np.reshape(obstacle_map, (SHAPE[0],SHAPE[1]))
-
-
-#subprocess.call(["build/bin/main.out", "config.txt"])
-
-#rho_mesh = np.load("rho_m.npy")
-#vel_mesh = np.load("vel_m.npy")
-#obstacle_map = np.load("obstacle_map.npy")
-
-#abs_vel_mesh = np.sqrt(vel_mesh[:,:,0]*vel_mesh[:,:,0] + vel_mesh[:,:,1]*vel_mesh[:,:,1])
-#plt.imshow(abs_vel_mesh.transpose())
-#plt.show()
+    #X, Y = np.meshgrid(np.linspace(0,SHAPE[0]-1,SHAPE[0]),np.linspace(0,SHAPE[1]-1,SHAPE[1]))
+    #ax.streamplot(X,Y,np.ma.array(vel_mesh[:,:,0].transpose(),mask=obstacle_map.transpose()),vel_mesh[:,:,1].transpose(), density=3)
 
 #nx = rho_mesh.shape[0]
 #ny = rho_mesh.shape[1]
