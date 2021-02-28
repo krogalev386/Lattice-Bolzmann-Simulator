@@ -6,13 +6,16 @@ import time
 import subprocess
 
 def recive_data(socket):
-    meta_info_buff_size = 8*3
+    meta_info_buff_size = 8
 
     meta_info = np.frombuffer(socket.recv(meta_info_buff_size), dtype=np.uint64)
 
-    buff_size = meta_info[0]
-    n_of_cycles = meta_info[1]
-    n_of_rest_bytes = meta_info[2]
+    buff_size = 8*1024
+    data_size = meta_info[0]
+    #print("Data size: ", data_size)
+    n_of_cycles = int(data_size / buff_size)
+    n_of_rest_bytes = int(data_size % buff_size)
+    #print("Data size check: ", n_of_cycles*buff_size + n_of_rest_bytes)
 
     accepted_data = bytearray()
 
@@ -20,6 +23,11 @@ def recive_data(socket):
         accepted_data = accepted_data + socket.recv(buff_size)
 
     accepted_data = accepted_data + socket.recv(n_of_rest_bytes)
+
+    #accepted_data = socket.recv(data_size)
+    print("Data size check 2: ", len(accepted_data))
+
+    s.sendall(b'0')
 
     return accepted_data
 
@@ -52,6 +60,7 @@ while (p.returncode == None):
 
     rho_mesh = recive_data(s)
     rho_mesh = np.frombuffer(rho_mesh, dtype=np.double)
+    #print("Rho size: ", len(rho_mesh))
     rho_mesh = rho_mesh.reshape(SHAPE)
 
     vel_mesh = recive_data(s)
@@ -71,6 +80,7 @@ while (p.returncode == None):
     obstacle_image.set_data(obstacle_map.transpose())
     fig.canvas.draw()
 
+s.close()
     #X, Y = np.meshgrid(np.linspace(0,SHAPE[0]-1,SHAPE[0]),np.linspace(0,SHAPE[1]-1,SHAPE[1]))
     #ax.streamplot(X,Y,np.ma.array(vel_mesh[:,:,0].transpose(),mask=obstacle_map.transpose()),vel_mesh[:,:,1].transpose(), density=3)
 
