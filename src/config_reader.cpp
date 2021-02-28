@@ -62,3 +62,22 @@ int config_reader::get_timesteps(std::string config_file_name){
     }
     return timesteps;
 }
+
+int config_reader::get_check_step(std::string config_file_name){
+    int check_step;
+
+    std::fstream config_file;
+    std::string curr_str, tmp;
+    std::stringstream ss;
+
+    config_file.open(config_file_name, std::ios::in);
+    while(std::getline(config_file, curr_str)){
+        ss = std::stringstream(curr_str);
+        ss >> tmp;
+        if (tmp == "CHECK_STEP:"){
+            ss >> tmp; check_step = std::stoi(tmp);
+        }
+    }
+    return check_step;
+}
+

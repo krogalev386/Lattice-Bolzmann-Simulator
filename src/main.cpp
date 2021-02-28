@@ -11,7 +11,9 @@ int main(int argc, char** argv) {
  
     std::shared_ptr<data_transmitter> transmitter = std::make_shared<data_transmitter>(1337);
  
-    solver solver_obj = solver(dom, conf_read.get_timesteps(conf_file), 100);
+    int timesteps = conf_read.get_timesteps(conf_file);
+    int check_step = conf_read.get_check_step(conf_file);
+    solver solver_obj = solver(dom, timesteps, check_step);
     solver_obj.attatch_transmitter(transmitter);
 
     solver_obj.solve();
