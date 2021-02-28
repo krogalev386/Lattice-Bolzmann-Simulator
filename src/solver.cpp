@@ -189,7 +189,9 @@ void solver::_streaming_step(){
 
 void solver::attatch_transmitter(std::shared_ptr<data_transmitter> transmitter){
     this->transmitter = transmitter;
-    (this->transmitter)->attatch_domain(dom);
+    transmitter->attatch_domain(dom);
+    transmitter->set_n_of_cycles(uint64_t(timesteps / check_period));
+    transmitter->accept_connection();
 };
 
 void solver::solve() {
@@ -197,7 +199,7 @@ void solver::solve() {
     dom->init_phys_field();
     init_f_distr();
     for (uint ts = 0; ts < timesteps; ++ts){
-        if (ts%100 == 0){
+        if (ts % check_period == 0){
             std::cout << "Timestep " << ts << std::endl;
             if (transmitter)
                 transmitter->send_data();
@@ -205,4 +207,6 @@ void solver::solve() {
         _streaming_step();
         _collision_step();
     }
+    if (transmitter)
+        transmitter->close_connection();
 };

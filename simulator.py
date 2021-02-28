@@ -10,12 +10,10 @@ def recive_data(socket):
 
     meta_info = np.frombuffer(socket.recv(meta_info_buff_size), dtype=np.uint64)
 
-    buff_size = 8*1024
+    buff_size = 1024
     data_size = meta_info[0]
-    #print("Data size: ", data_size)
     n_of_cycles = int(data_size / buff_size)
     n_of_rest_bytes = int(data_size % buff_size)
-    #print("Data size check: ", n_of_cycles*buff_size + n_of_rest_bytes)
 
     accepted_data = bytearray()
 
@@ -23,9 +21,6 @@ def recive_data(socket):
         accepted_data = accepted_data + socket.recv(buff_size)
 
     accepted_data = accepted_data + socket.recv(n_of_rest_bytes)
-
-    #accepted_data = socket.recv(data_size)
-    print("Data size check 2: ", len(accepted_data))
 
     s.sendall(b'0')
 
@@ -52,15 +47,18 @@ bar = plt.colorbar(vel_image)
 obstacle_image = ax.imshow([[1,0],[0,0]], alpha=0.5,
           interpolation='nearest', cmap='gray', aspect='auto')
 
-while (p.returncode == None):
+
+counter = recive_data(s)
+counter = (np.frombuffer(counter, dtype=np.int64))[0]
+
+SHAPE = recive_data(s)
+SHAPE = np.frombuffer(SHAPE, dtype=np.int32)
+
+for i in range(counter):
     fig.canvas.flush_events()
-    print("============================")
-    SHAPE = recive_data(s)
-    SHAPE = np.frombuffer(SHAPE, dtype=np.int32)
 
     rho_mesh = recive_data(s)
     rho_mesh = np.frombuffer(rho_mesh, dtype=np.double)
-    #print("Rho size: ", len(rho_mesh))
     rho_mesh = rho_mesh.reshape(SHAPE)
 
     vel_mesh = recive_data(s)
@@ -81,6 +79,10 @@ while (p.returncode == None):
     fig.canvas.draw()
 
 s.close()
+
+plt.ioff()
+plt.show()
+
     #X, Y = np.meshgrid(np.linspace(0,SHAPE[0]-1,SHAPE[0]),np.linspace(0,SHAPE[1]-1,SHAPE[1]))
     #ax.streamplot(X,Y,np.ma.array(vel_mesh[:,:,0].transpose(),mask=obstacle_map.transpose()),vel_mesh[:,:,1].transpose(), density=3)
 

@@ -4,18 +4,14 @@
 #include <xtensor/xnpy.hpp>
 
 int main(int argc, char** argv) {
-    //std::shared_ptr<domain> dom = std::make_shared<domain>(0,1.104e-4,10,5,40,23);
-    //std::shared_ptr<figure> cylind = std::make_shared<cylinder>(5,2.5,1);
-    //std::cout << "Chech" << std::endl;
+ 
     config_reader conf_read;
     std::string conf_file = argv[1];
     std::shared_ptr<domain> dom = conf_read.build_domain(conf_file);
-    //dom->insert_figure(cylind);
-
+ 
     std::shared_ptr<data_transmitter> transmitter = std::make_shared<data_transmitter>(1337);
-    transmitter->accept_connection();
-
-    solver solver_obj = solver(dom, conf_read.get_timesteps(conf_file));
+ 
+    solver solver_obj = solver(dom, conf_read.get_timesteps(conf_file), 100);
     solver_obj.attatch_transmitter(transmitter);
 
     solver_obj.solve();
@@ -25,9 +21,7 @@ int main(int argc, char** argv) {
     xt::xarray<double> f_distr = solver_obj.get_f_distr();
     xt::xarray<double> f_distr_next = solver_obj.get_f_distr_next();
     
-    //std::cout << rho_m << std::endl;
     xt::dump_npy("rho_m.npy", rho_m);
     xt::dump_npy("vel_m.npy", vel_m);
     xt::dump_npy("obstacle_map.npy", dom->get_mesh().is_solid);
-    //std::cout << xt::view(vel_m, xt::all(), xt::all(), 0) << std::endl;
 };

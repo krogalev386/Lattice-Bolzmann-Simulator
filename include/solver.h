@@ -11,6 +11,7 @@ class solver {
     std::shared_ptr<data_transmitter> transmitter;
     int c;
     int timesteps;
+    int check_period;
     
     // internal functions
     void _bounce_back();
@@ -38,7 +39,7 @@ public:
     xt::xarray<double> get_f_distr_next() { return dom->get_mesh().f_distr_next; }
 
 
-    solver(std::shared_ptr<domain> dom, int timesteps): dom(dom), timesteps(timesteps) {
+    solver(std::shared_ptr<domain> dom, int timesteps, int check_period): dom(dom), timesteps(timesteps), check_period(check_period) {
         int nx = dom->get_mesh().rho_mesh.shape()[0];
         int ny = dom->get_mesh().rho_mesh.shape()[1];
         f_eq = xt::zeros<double>({nx,ny,9});
